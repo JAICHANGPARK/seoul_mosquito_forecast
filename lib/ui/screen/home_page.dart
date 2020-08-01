@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_seoul_mosquito_forcast/model/mosquito.dart' as msq;
 import 'package:flutter_seoul_mosquito_forcast/repository/mosquito_api.dart';
 import 'package:intl/intl.dart' as intl;
+import 'package:share/share.dart';
 
 import 'web_view_page.dart';
 
@@ -34,6 +35,9 @@ class _HomePageState extends State<HomePage> {
 
   PageController controller = PageController(initialPage: images.length - 1);
   String fetchDate;
+  String _waterText;
+  String _parkText;
+  String _houseText;
 
   Future getMosquitoDate(DateTime datetime) async {
     String date = intl.DateFormat("yyyy-MM-dd").format(datetime);
@@ -48,6 +52,10 @@ class _HomePageState extends State<HomePage> {
     value.add(mosquito.mosquitoStatus.row[0].mOSQUITOVALUEWATER);
     value.add(mosquito.mosquitoStatus.row[0].mOSQUITOVALUEPARK);
     value.add(mosquito.mosquitoStatus.row[0].mOSQUITOVALUEHOUSE);
+
+    _waterText = mosquito.mosquitoStatus.row[0].mOSQUITOVALUEWATER;
+    _parkText = mosquito.mosquitoStatus.row[0].mOSQUITOVALUEPARK;
+    _houseText = mosquito.mosquitoStatus.row[0].mOSQUITOVALUEHOUSE;
     setState(() {});
   }
 
@@ -69,7 +77,7 @@ class _HomePageState extends State<HomePage> {
     return Scaffold(
       body: SafeArea(
         child: Padding(
-          padding: const EdgeInsets.all(16.0),
+          padding: const EdgeInsets.only(top: 16,right: 16, left: 16),
           child: SingleChildScrollView(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
@@ -84,7 +92,6 @@ class _HomePageState extends State<HomePage> {
                     IconButton(
                       onPressed: () {
                         Navigator.of(context).pushNamed('/setting');
-
                       },
                       icon: Icon(Icons.settings),
                     )
@@ -92,12 +99,41 @@ class _HomePageState extends State<HomePage> {
                 ),
                 Text("서울지역 모기발생 상황을 지수화하여 모기발생 단계별 시민행동요령을 알려주는 일일 모기발생 예보서비스입니다."),
                 SizedBox(
-                  height: 16,
+                  height: 8,
                 ),
-                Align(alignment: Alignment.centerRight,child: Text("기준일: $fetchDate",)),
-                SizedBox(
-                  height: 16,
-                ),
+                Align(alignment: Alignment.centerRight,
+                    child: Row(
+                      crossAxisAlignment: CrossAxisAlignment.center,
+                  mainAxisAlignment: MainAxisAlignment.end,
+                  children: [
+                    InkWell(child: Text("기준일: $fetchDate",),
+                    onTap: (){
+                      showDialog(context: context, builder: (context) => AlertDialog(
+                        title: Text("안내"),
+                        content: Text("기준은을 정보 제공자로 부터 가장 최근의 정보를 가져오게됩니다. 기준일은 당일과 다소 차이가 발생할 수 있습니다."),
+                        actions: [
+                          ButtonBar(
+                            children: [
+                              FlatButton(
+                                onPressed: ()=>Navigator.of(context).pop(),
+                                child: Text("확인"),
+                              )
+                            ],
+                          )
+                        ],
+                      ));
+                    },),
+                    IconButton(
+                      onPressed: (){
+                        Share.share("[주거지]:$_houseText, [공원]: $_parkText, [수변부]: $_waterText,"
+                            "\n --모기예보 확인은 서울모기예보앱에서");
+                      },
+                      icon: Icon(Icons.share),
+                      iconSize: 18,
+                    )
+                  ],
+                )),
+
                 value.length > 0
                     ? Stack(
                         children: <Widget>[
@@ -124,44 +160,75 @@ class _HomePageState extends State<HomePage> {
                         ),
                       ),
                 SizedBox(
-                  height: 16,
+                  height: 8,
                 ),
                 Text(
                   "정보",
                   style: TextStyle(fontSize: 28, fontWeight: FontWeight.bold),
+                ), SizedBox(
+                  height: 8,
                 ),
                 SizedBox(
                   width: double.infinity,
                   child: Card(
                     elevation: 4,
                     child: Padding(
-                      padding: const EdgeInsets.all(16.0),
-                      child: Row(
-                        crossAxisAlignment: CrossAxisAlignment.center,
-                        mainAxisAlignment: MainAxisAlignment.center,
+                      padding: const EdgeInsets.all(12.0),
+                      child: Column(
                         children: [
-                          Text(
-                            "모기예보제란",
-                            style: TextStyle(fontSize: 18),
+                          Row(
+                            crossAxisAlignment: CrossAxisAlignment.center,
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              Text(
+                                "모기예보제란",
+                                style: TextStyle(fontSize: 18),
+                              ),
+                              Spacer(),
+                              Text("자세히보기"),
+                              IconButton(
+                                icon: Icon(Icons.keyboard_arrow_right),
+                                onPressed: () {
+                                  Navigator.of(context).push(
+                                    MaterialPageRoute(builder: (context)=>WebViewExample(
+                                      "https://news.seoul.go.kr/welfare/archives/511985",
+                                      "모기예보제란"
+                                    ))
+                                  );
+                                },
+                              )
+                            ],
                           ),
-                          Spacer(),
-                          Text("자세히보기"),
-                          IconButton(
-                            icon: Icon(Icons.keyboard_arrow_right),
-                            onPressed: () {
-                              Navigator.of(context).push(
-                                MaterialPageRoute(builder: (context)=>WebViewExample(
-                                  "https://news.seoul.go.kr/welfare/archives/511985",
-                                  "모기예보제란"
-                                ))
-                              );
-                            },
-                          )
+                          Divider(color: Colors.grey,),
+                          Row(
+                            crossAxisAlignment: CrossAxisAlignment.center,
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              Text(
+                                "모기감시자료",
+                                style: TextStyle(fontSize: 18),
+                              ),
+                              Spacer(),
+                              Text("자세히보기"),
+                              IconButton(
+                                icon: Icon(Icons.keyboard_arrow_right),
+                                onPressed: () {
+                                  Navigator.of(context).push(
+                                      MaterialPageRoute(builder: (context)=>WebViewExample(
+                                          "https://news.seoul.go.kr/welfare/mos_dmsnblt",
+                                          "모기감시자료"
+                                      ))
+                                  );
+                                },
+                              )
+                            ],
+                          ),
                         ],
                       ),
                     ),
                   ),
-                )
+                ),
+
               ],
             ),
           ),
